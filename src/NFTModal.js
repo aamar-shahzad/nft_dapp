@@ -27,7 +27,7 @@ const NFTModal = ({ isOpen, closeModal, nft, onNFTUpdated, onNFTCreated,userId})
 
   const handleUpdate = async () => {
     try {
-      const response = await axios.put(`http://localhost:3000/nfts/${nft.id}`, nftData);
+      const response = await axios.put(`http://localhost:5000/nfts/${nft.id}`, nftData);
       // onNFTUpdated(response.data)
 onNFTUpdated(response.data)
       closeModal();
@@ -38,7 +38,7 @@ onNFTUpdated(response.data)
 
   const handleSubmit = async () => {
     try {
-      const response = await axios.post('http://localhost:3000/nfts', nftData);
+      const response = await axios.post('http://localhost:5000/nfts', nftData);
       onNFTCreated(response.data);
       closeModal();
     } catch (error) {

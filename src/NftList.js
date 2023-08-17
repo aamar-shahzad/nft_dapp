@@ -12,7 +12,7 @@ const NftList = ({ userId, UpdateNft }) => {
   const fetchNfts = async () => {
     try {
       if (userId) {
-        const response = await axios.get(`http://localhost:3000/users/${userId}/nfts`);
+        const response = await axios.get(`http://localhost:5000/users/${userId}/nfts`);
         setNfts(response.data);
       }
     } catch (error) {
@@ -24,7 +24,7 @@ const NftList = ({ userId, UpdateNft }) => {
 
     // After minting, update the status of the NFT on the API
     try {
-      const response = await axios.patch(`http://localhost:3000/nfts/${nftId}/status`, {
+      const response = await axios.patch(`http://localhost:5000/nfts/${nftId}/status`, {
         isMinted: true // Update the status value as needed
       });
 
