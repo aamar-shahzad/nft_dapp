@@ -6,6 +6,7 @@ import NFTABI from './contracts/contracts/NFT.sol/NFT.json'
 
 const NftCard = ({ nft, onEdit ,onMint}) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isMinting, setIsMinting] = useState(false); // Add this line
 
   const openEditModal = () => {
     setIsEditModalOpen(true);
@@ -14,8 +15,9 @@ const NftCard = ({ nft, onEdit ,onMint}) => {
   const closeEditModal = () => {
     setIsEditModalOpen(false);
   };
-  const handleMint = async (nftId, tokenURI) => {
+  const handleMint = async (nftId) => {
     try {
+      setIsMinting(true);
         if (window.ethereum) {
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
             if (accounts.length === 0) {
@@ -33,17 +35,24 @@ const NftCard = ({ nft, onEdit ,onMint}) => {
             const contractAbi = NFTABI.abi;
             const contract = new ethers.Contract(contractAddress, contractAbi, signer);
 
-            const mintTransaction = await contract.mint(signerAddress, nftId, tokenURI);
+            const mintTransaction = await contract.safeMint(signerAddress, nftId);
 
-            console.log('Mint transaction:', mintTransaction);
+            console.log('Mint transaction:',await mintTransaction.wait());
 
             onMint(nftId);
+          
 
             console.log('Minting successful');
+            setIsMinting(false); // Reset the state to indicate minting is finished
+
         } else {
+          setIsMinting(false); // Reset the state to indicate minting is finished
+
             console.error('MetaMask not detected or not connected.');
         }
     } catch (error) {
+      setIsMinting(false); // Reset the state to indicate minting is finished
+
         console.error('Error minting NFT:', error);
     }
 };
@@ -54,13 +63,23 @@ const NftCard = ({ nft, onEdit ,onMint}) => {
       <h2 className="nft-title">{nft.name}</h2>
       <p className="nft-description">{nft.description}</p>
       {nft.isMinted ? (
-        <p className="nft-status">Minted</p>
+         <>
+         <p className="nft-status">Minted</p>
+         <p className="nft-owner">Owner: {nft.userAccount}</p>
+       </>
+        
       ) : (
         <div className="button-container">
           <button className="action-button edit-button" onClick={openEditModal}>
             Edit
           </button>
-          <button className="action-button mint-button" onClick={() => handleMint(nft.id,"http://loclhost.com/")}>Mint</button>
+          <button
+  className="action-button mint-button"
+  onClick={() => handleMint(nft.id)}
+  disabled={isMinting} // Disable the button when minting is ongoing
+>
+  {isMinting ? 'Minting...' : 'Mint'}
+</button>
         </div>
       )}
 

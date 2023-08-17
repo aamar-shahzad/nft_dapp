@@ -5,6 +5,7 @@
   }
   
   .nft-card {
+    position: relative;
     border: 1px solid #ccc;
     padding: 20px;
     border-radius: 8px;
@@ -13,7 +14,19 @@
     flex-direction: column;
     justify-content: space-between;
   }
-  
+  .nft-owner {
+    position: absolute;
+    bottom: 10px; /* Adjust the distance from the bottom as needed */
+    left: 10px; /* Adjust the distance from the left as needed */
+    font-size: 12px; /* Adjust the font size as needed */
+    color: #888; /* Adjust the color as needed */
+
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100px; /* Adjust the max width as needed */
+    
+  }
   .nft-image {
     max-width: 100%;
     height: auto;

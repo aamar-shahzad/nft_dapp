@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract NFT is ERC721URIStorage, Ownable {
-    constructor() ERC721("MyNFT", "MNFT") {}
+contract NFT is ERC721, Ownable {
+    constructor() ERC721("MyToken", "MTK") {}
 
-    function mint(
-        address to,
-        uint256 tokenId,
-        string memory tokenURI
-    ) public onlyOwner {
-        _mint(to, tokenId);
-        _setTokenURI(tokenId, tokenURI);
+    function _baseURI() internal pure override returns (string memory) {
+        return "https:// ipfs/";
+    }
+
+    function safeMint(address to, uint256 tokenId) public onlyOwner {
+        _safeMint(to, tokenId);
     }
 }

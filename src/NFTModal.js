@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Modal from 'react-modal';
 import axios from 'axios';
 import './NFTModal.css';
-import { useEffect } from 'react';
 
 Modal.setAppElement('#root');
 
