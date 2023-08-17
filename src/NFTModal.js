@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import Modal from 'react-modal';
 import axios from 'axios';
-import './NFTModal.css'; // Import your CSS file for styling
+import './NFTModal.css';
+import { useEffect } from 'react';
 
-Modal.setAppElement('#root'); // Set the root element
+Modal.setAppElement('#root');
 
-const NFTModal = ({ isOpen, closeModal, onNFTCreated }) => {
+const NFTModal = ({ isOpen, closeModal, nft, onNFTUpdated, onNFTCreated,userId}) => {
   const [nftData, setNftData] = useState({
-    name: '',
-    description: '',
+    name: nft ? nft.name : '', // Use nft.name if available, otherwise use an empty string
+    description: nft ? nft.description : '', // Use nft.description if available, otherwise use an empty string
     // Add more fields as needed
+    user:{
+      id:userId
+    }
+    
   });
 
   const handleInputChange = (event) => {
@@ -17,12 +22,24 @@ const NFTModal = ({ isOpen, closeModal, onNFTCreated }) => {
     setNftData((prevData) => ({
       ...prevData,
       [name]: value,
+
     }));
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const response = await axios.put(`http://localhost:3000/nfts/${nft.id}`, nftData);
+      // onNFTUpdated(response.data)
+onNFTUpdated(response.data)
+      closeModal();
+    } catch (error) {
+      console.error('Error updating NFT:', error);
+    }
   };
 
   const handleSubmit = async () => {
     try {
-      const response = await axios.post('http://localhost:3000/nfts', nftData); // Replace with your API URL
+      const response = await axios.post('http://localhost:3000/nfts', nftData);
       onNFTCreated(response.data);
       closeModal();
     } catch (error) {
@@ -39,9 +56,9 @@ const NFTModal = ({ isOpen, closeModal, onNFTCreated }) => {
       overlayClassName="overlay"
     >
       <div className="modal-content">
-        <h2>Create NFT</h2>
+        <h2>{nft ? 'Edit NFT' : 'Create NFT'}</h2>
         <form>
-          <label>Name:</label>
+          <label>Title:</label>
           <input type="text" name="name" value={nftData.name} onChange={handleInputChange} />
           <label>Description:</label>
           <textarea
@@ -49,9 +66,8 @@ const NFTModal = ({ isOpen, closeModal, onNFTCreated }) => {
             value={nftData.description}
             onChange={handleInputChange}
           ></textarea>
-          {/* Add more input fields as needed */}
-          <button type="button" onClick={handleSubmit}>
-            Create
+          <button type="button" onClick={nft ? handleUpdate : handleSubmit}>
+            {nft ? 'Update' : 'Create'}
           </button>
           <button type="button" onClick={closeModal}>
             Cancel

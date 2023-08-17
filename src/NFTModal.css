@@ -19,6 +19,13 @@
     display: block;
     margin-bottom: 5px;
   }
+  .modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* Your other modal styles */
+  }
   
   .modal-content form input,
   .modal-content form textarea {

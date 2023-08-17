@@ -1,66 +1,112 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import NFTModal from './NFTModal';
 import NFTList from './NftList';
 import './App.css';
-import { useWeb3React } from '@web3-react/core';
-import injectedConnector from './WalletConnector'; // Import the injected (MetaMask) connector
-import { WalletConnectConnector } from '@web3-react/walletconnect-connector'; // Import WalletConnect connector
+import { ethers } from 'ethers';
 
 const App = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [nfts, setNfts] = useState([]);
-  const { activate, active, account } = useWeb3React(); // Web3React hook
+  const [provider, setProvider] = useState(null);
+  const [account, setAccount] = useState('');
+  const [userId, setUserId] = useState(null);
+  const [selectedNft, setSelectedNft] = useState(null);
 
-  const openModal = () => {
+  const openModal = (nft) => {
+    setSelectedNft(nft);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
+    setSelectedNft(null);
     setIsModalOpen(false);
   };
 
-  const createNFT = (nftData) => {
-    setNfts((prevNfts) => [...prevNfts, nftData]);
-    closeModal(); // Close the modal after creating NFT
-  };
-
-  const connectWallet = async (connector) => {
-    try {
-      await activate(connector);
-    } catch (error) {
-      console.error('Error connecting wallet:', error);
+  const createOrUpdateNFT = (nftData) => {
+    if (selectedNft) {
+      // Update existing NFT
+      const updatedNfts = nfts.map((nft) => (nft.id === selectedNft.id ? nftData : nft));
+      setNfts(updatedNfts);
+    } else {
+      // Create new NFT
+      setNfts((prevNfts) => [...prevNfts, nftData]);
     }
+    closeModal();
   };
 
-  // Create WalletConnect connector instance
-  const walletConnectConnector = new WalletConnectConnector({
-    rpc: { 1: 'https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID' }, // Replace with your Infura project ID
-    qrcode: true,
-  });
+  useEffect(() => {
+    async function connectToProvider() {
+      if (window.ethereum) {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
 
+        const ethereumProvider = new ethers.providers.Web3Provider(window.ethereum);
+        setProvider(ethereumProvider);
+
+        const signer = ethereumProvider.getSigner();
+        const connectedAccount = await signer.getAddress();
+        setAccount(connectedAccount);
+      } else {
+        console.error('MetaMask not found. Please install MetaMask.');
+      }
+    }
+
+    connectToProvider();
+  }, []);
+
+  useEffect(() => {
+    async function fetchUserId() {
+      if (account) {
+        try {
+          const response = await fetch(`http://localhost:3000/users/id/${account}`);
+          const data = await response.json();
+
+          const userId = data.userId;
+
+          // Fetch NFTs based on the retrieved user ID
+          setUserId(userId);
+        } catch (error) {
+          console.error('Error fetching user ID:', error);
+        }
+      }
+    }
+
+    fetchUserId();
+  }, [account]);
+  const handleUpdate = (updatedNft) => {
+    console.log("hanldeupdate")
+    const updatedNfts = nfts.map((nft) =>
+      nft.id === updatedNft.id ? updatedNft : nft
+    );
+    setNfts(updatedNfts);
+    // Close the edit modal if open (if you have an edit modal open)
+  };
   return (
     <div className="app-container">
       <h1>NFT Collection</h1>
-      {active ? (
+      {account ? (
         <>
-          <button className="create-nft-button" onClick={openModal}>
+          <button className="create-nft-button" onClick={() => openModal(null)}>
             Create NFT
           </button>
           <p>Connected Account: {account}</p>
         </>
       ) : (
         <>
-          <button className="connect-wallet-button" onClick={() => connectWallet(injectedConnector)}>
-            Connect MetaMask
-          </button>
-          <button className="connect-wallet-button" onClick={() => connectWallet(walletConnectConnector)}>
-            Connect WalletConnect
-          </button>
+   
+          <button className="connect-wallet-button">Connect to wallet</button>
         </>
       )}
-      {!isModalOpen && <NFTList nfts={nfts} />}
+      <NFTList userId={userId} UpdateNft={nfts} onEditNFT={openModal} onEdit={handleUpdate} />
       {isModalOpen && (
-        <NFTModal isOpen={isModalOpen} closeModal={closeModal} onNFTCreated={createNFT} />
+        <NFTModal
+          isOpen={isModalOpen}
+          closeModal={closeModal}
+          nft={selectedNft}
+          onNFTUpdated={createOrUpdateNFT}
+          onNFTCreated={createOrUpdateNFT}
+          userId={userId}
+    
+        />
       )}
     </div>
   );
